@@ -2,10 +2,10 @@ package org.opencv.android;
 
 import java.util.List;
 
-import org.opencv.BuildConfig;
 import org.opencv.R;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
+import org.opencv.highgui.Highgui;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -45,7 +45,7 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
     protected int mMaxHeight;
     protected int mMaxWidth;
     protected float mScale = 0;
-    protected int mPreviewFormat = RGBA;
+    protected int mPreviewFormat = Highgui.CV_CAP_ANDROID_COLOR_FRAME_RGBA;
     protected int mCameraIndex = CAMERA_ID_ANY;
     protected boolean mEnabled;
     protected FpsMeter mFpsMeter = null;
@@ -53,8 +53,6 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
     public static final int CAMERA_ID_ANY   = -1;
     public static final int CAMERA_ID_BACK  = 99;
     public static final int CAMERA_ID_FRONT = 98;
-    public static final int RGBA = 1;
-    public static final int GRAY = 2;
 
     public CameraBridgeViewBase(Context context, int cameraId) {
         super(context);
@@ -152,10 +150,10 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
         public Mat onCameraFrame(CvCameraViewFrame inputFrame) {
              Mat result = null;
              switch (mPreviewFormat) {
-                case RGBA:
+                case Highgui.CV_CAP_ANDROID_COLOR_FRAME_RGBA:
                     result = mOldStyleListener.onCameraFrame(inputFrame.rgba());
                     break;
-                case GRAY:
+                case Highgui.CV_CAP_ANDROID_GREY_FRAME:
                     result = mOldStyleListener.onCameraFrame(inputFrame.gray());
                     break;
                 default:
@@ -169,7 +167,7 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
             mPreviewFormat = format;
         }
 
-        private int mPreviewFormat = RGBA;
+        private int mPreviewFormat = Highgui.CV_CAP_ANDROID_COLOR_FRAME_RGBA;
         private CvCameraViewListener mOldStyleListener;
     };
 
@@ -297,7 +295,6 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
      * Called when mSyncObject lock is held
      */
     private void checkCurrentState() {
-        Log.d(TAG, "call checkCurrentState");
         int targetState;
 
         if (mEnabled && mSurfaceExist && getVisibility() == VISIBLE) {
@@ -315,7 +312,6 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
     }
 
     private void processEnterState(int state) {
-        Log.d(TAG, "call processEnterState: " + state);
         switch(state) {
         case STARTED:
             onEnterStartedState();
@@ -333,7 +329,6 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
     }
 
     private void processExitState(int state) {
-        Log.d(TAG, "call processExitState: " + state);
         switch(state) {
         case STARTED:
             onExitStartedState();
@@ -355,7 +350,6 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
     // NOTE: The order of bitmap constructor and camera connection is important for android 4.1.x
     // Bitmap must be constructed before surface
     private void onEnterStartedState() {
-        Log.d(TAG, "call onEnterStartedState");
         /* Connect camera */
         if (!connectCamera(getWidth(), getHeight())) {
             AlertDialog ad = new AlertDialog.Builder(getContext()).create();
@@ -410,8 +404,7 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
             Canvas canvas = getHolder().lockCanvas();
             if (canvas != null) {
                 canvas.drawColor(0, android.graphics.PorterDuff.Mode.CLEAR);
-                if (BuildConfig.DEBUG)
-                    Log.d(TAG, "mStretch value: " + mScale);
+                Log.d(TAG, "mStretch value: " + mScale);
 
                 if (mScale != 0) {
                     canvas.drawBitmap(mCacheBitmap, new Rect(0,0,mCacheBitmap.getWidth(), mCacheBitmap.getHeight()),
@@ -451,7 +444,7 @@ public abstract class CameraBridgeViewBase extends SurfaceView implements Surfac
      */
     protected abstract void disconnectCamera();
 
-    // NOTE: On Android 4.1.x the function must be called before SurfaceTexture constructor!
+    // NOTE: On Android 4.1.x the function must be called before SurfaceTextre constructor!
     protected void AllocateCache()
     {
         mCacheBitmap = Bitmap.createBitmap(mFrameWidth, mFrameHeight, Bitmap.Config.ARGB_8888);
